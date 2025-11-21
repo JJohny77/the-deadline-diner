@@ -1,0 +1,17 @@
+body {
+    background: #f8f9fa;
+    font-family: "Inter", sans-serif;
+}
+
+.navbar-brand {
+    font-size: 1.4rem;
+}
+
+.card {
+    border-radius: 10px;
+}
+
+footer {
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
