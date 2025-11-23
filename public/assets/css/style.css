@@ -1,6 +1,15 @@
-body {
+html, body {
     background: #f8f9fa;
     font-family: "Inter", sans-serif;
+    height: 100%;
+    overflow-x: hidden; /* 🔥 Σταματά το scroll δεξιά */
+}
+
+.page-wrapper {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px;
 }
 
 .navbar-brand {
@@ -14,6 +23,7 @@ body {
 footer {
     font-size: 0.9rem;
     opacity: 0.85;
+    margin-top: auto;
 }
 .table-card {
     border-radius: 12px;

@@ -1,4 +1,6 @@
 <?php
+include "includes/auth.php";
+include "includes/header.php";
 include "includes/db.php";
 
 // --- Validate table ---

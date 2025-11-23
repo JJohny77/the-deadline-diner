@@ -1,4 +1,5 @@
 <?php 
+include "includes/auth.php";
 include "includes/header.php"; 
 include "includes/db.php";
 
@@ -28,5 +29,12 @@ $tables = mysqli_fetch_all($result, MYSQLI_ASSOC);
 <?php endforeach; ?>
 
 </div>
+
+<?php if (isset($_GET['cancelled'])): ?>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>Order cancelled.</strong> The order has been removed.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
 
 <?php include "includes/footer.php"; ?>
