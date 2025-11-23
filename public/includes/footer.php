@@ -1,6 +1,6 @@
 </div> <!-- container END -->
 
-<footer class="bg-dark text-light text-center py-3 mt-5">
+<footer class="bg-dark text-light text-center py-3 mt-auto">
     <p class="mb-0">&copy; 2025 The Deadline Diner — All Rights Reserved</p>
 </footer>
 
