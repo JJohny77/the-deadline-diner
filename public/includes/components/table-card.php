@@ -33,6 +33,6 @@ $statusLabel = [
 
         <p class="text-muted small mb-0"><?= $seats ?> seats</p>
 
-        <a href="#" class="btn btn-dark btn-sm mt-3 w-100">View Details</a>
+        <a href="/the-deadline-diner/public/table.php?id=<?= $tableNumber ?>" class="btn btn-dark btn-sm mt-3 w-100">View Details</a>
     </div>
 </div>

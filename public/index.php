@@ -7,7 +7,7 @@
         <div class="card shadow-sm p-3">
             <h4>Manage Tables</h4>
             <p>View availability, edit table status, reservations, and more.</p>
-            <a href="#" class="btn btn-dark">Go</a>
+            <a href="tables.php" class="btn btn-dark">Go</a>
         </div>
     </div>
 
