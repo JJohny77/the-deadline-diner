@@ -1,31 +1,31 @@
-<?php include "includes/header.php"; ?>
+<?php 
+include "includes/header.php"; 
+include "includes/db.php";
+
+// Fetch tables from DB
+$query = "SELECT * FROM tables ORDER BY id ASC";
+$result = mysqli_query($conn, $query);
+
+$tables = mysqli_fetch_all($result, MYSQLI_ASSOC);
+?>
 
 <h1 class="fw-bold mb-4">Tables Overview</h1>
 
-<?php
-// Temporary static data — later we connect DB
-$tables = [
-    ["num" => 1, "status" => "free", "seats" => 2],
-    ["num" => 2, "status" => "occupied", "seats" => 4],
-    ["num" => 3, "status" => "reserved", "seats" => 2],
-    ["num" => 4, "status" => "free", "seats" => 6],
-    ["num" => 5, "status" => "occupied", "seats" => 2],
-    ["num" => 6, "status" => "reserved", "seats" => 4],
-];
-?>
-
 <div class="row g-4">
 
-    <?php foreach ($tables as $t): ?>
-        <div class="col-6 col-md-4 col-lg-3">
-            <?php 
-            $tableNumber = $t["num"];
-            $status      = $t["status"];
-            $seats       = $t["seats"];
-            include "includes/components/table-card.php"; 
-            ?>
-        </div>
-    <?php endforeach; ?>
+<?php foreach ($tables as $t): ?>
+    <div class="col-6 col-md-4 col-lg-3">
+
+        <?php
+        $tableNumber = $t["id"];
+        $status      = $t["status"];
+        $seats       = $t["seats"];
+
+        include "includes/components/table-card.php"; 
+        ?>
+
+    </div>
+<?php endforeach; ?>
 
 </div>
 
