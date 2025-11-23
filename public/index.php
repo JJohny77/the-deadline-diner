@@ -1,4 +1,4 @@
-<?php include "partials/header.php"; ?>
+<?php include "includes/header.php"; ?>
 
 <h1 class="fw-bold mb-4">Welcome to The Deadline Diner</h1>
 
@@ -28,4 +28,4 @@
     </div>
 </div>
 
-<?php include "partials/footer.php"; ?>
+<?php include "includes/footer.php"; ?>

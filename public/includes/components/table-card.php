@@ -1,4 +1,10 @@
 <?php
+if (!isset($tableNumber) || !isset($status) || !isset($seats)) {
+    exit;
+}
+?>
+
+<?php
 // Expected variables:
 // $tableNumber (int)
 // $status (string) -> "free", "occupied", "reserved"

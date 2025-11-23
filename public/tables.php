@@ -1,4 +1,4 @@
-<?php include "partials/header.php"; ?>
+<?php include "includes/header.php"; ?>
 
 <h1 class="fw-bold mb-4">Tables Overview</h1>
 
@@ -22,11 +22,11 @@ $tables = [
             $tableNumber = $t["num"];
             $status      = $t["status"];
             $seats       = $t["seats"];
-            include "components/table-card.php"; 
+            include "includes/components/table-card.php"; 
             ?>
         </div>
     <?php endforeach; ?>
 
 </div>
 
-<?php include "partials/footer.php"; ?>
+<?php include "includes/footer.php"; ?>
