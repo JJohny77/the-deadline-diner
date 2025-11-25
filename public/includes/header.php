@@ -46,8 +46,8 @@ if (session_status() === PHP_SESSION_NONE) {
                 <!-- Manager-only links -->
                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'manager'): ?>
                     <li class="nav-item"><a class="nav-link" href="menu.php">Menu</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Staff</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="staff.php">Staff</a></li>
+                    <li class="nav-item"><a class="nav-link" href="orders.php">Orders</a></li>
                 <?php endif; ?>
 
                 <!-- Logged OUT -->
@@ -59,7 +59,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     <li class="nav-item d-flex align-items-center">
                         <span class="navbar-text text-light">
                             <?= htmlspecialchars($_SESSION['user_name']) ?>
-                            <small class="text-muted">(<?= $_SESSION['role'] ?>)</small>
+                            <small class="text-muted">(<?= htmlspecialchars($_SESSION['role']) ?>)</small>
                         </span>
                     </li>
 

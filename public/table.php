@@ -41,6 +41,20 @@ if (isset($_POST['change_status'])) {
 }
 
 // -------------------------
+// FETCH ACTIVE ORDER ONLY IF IT HAS ITEMS
+// -------------------------
+$activeOrder = null;
+$orderItems = [];
+
+$orderQ = mysqli_query($conn, "
+    SELECT o.*
+    FROM orders o
+    WHERE o.table_id = $tableId
+      AND o.status = 'pending'
+      AND EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.id)
+    ORDER BY o.created_at DESC
+    ");
+
 // FETCH LAST ORDER FOR THIS TABLE
 // (για να ξέρουμε αν υπάρχει refunded / served / pending κλπ)
 // -------------------------
@@ -56,12 +70,23 @@ $orderQ = mysqli_query($conn, "
 ");
 
 if ($orderQ && mysqli_num_rows($orderQ) > 0) {
+    $activeOrder = mysqli_fetch_assoc($orderQ);
+
+    $orderId = $activeOrder['id'];
     $lastOrder = mysqli_fetch_assoc($orderQ);
 
     $itemsQ = mysqli_query($conn, "
         SELECT oi.*, m.name AS item_name, m.price
         FROM order_items oi
         JOIN menu m ON m.id = oi.menu_id
+        WHERE oi.order_id = $orderId
+    ");
+
+    $orderItems = mysqli_fetch_all($itemsQ, MYSQLI_ASSOC);
+
+    $activeOrder['items'] = $orderItems;
+
+    // AUTO–SET TABLE TO OCCUPIED IF HAS ACTIVE ORDER
         WHERE oi.order_id = {$lastOrder['id']}
     ");
 
@@ -135,6 +160,12 @@ if ($lastOrder && $lastOrder['status'] === 'pending' && count($lastOrderItems) >
             <hr>
 
             <h5>Items</h5>
+
+            <?php if (count($activeOrder['items']) > 0): ?>
+                <ul class="list-group mb-3">
+                    <?php foreach ($activeOrder['items'] as $item): ?>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <?= $item['item_name'] ?> (x<?= $item['quantity'] ?>)
             <ul class="list-group mb-3">
                 <?php foreach ($activeOrder['items'] as $item): ?>
                     <li class="list-group-item d-flex justify-content-between">
@@ -184,6 +215,10 @@ if ($lastOrder && $lastOrder['status'] === 'pending' && count($lastOrderItems) >
                         </li>
                     <?php endforeach; ?>
                 </ul>
+            <?php endif; ?>
+
+            <a href="add_items.php?order=<?= $activeOrder['id'] ?>" class="btn btn-dark mt-3">Add Items</a>
+            <a href="close_order.php?id=<?= $activeOrder['id'] ?>" class="btn btn-success mt-3">Close Order</a>
             <?php else: ?>
                 <p class="text-muted">No items recorded for this order.</p>
             <?php endif; ?>
@@ -200,13 +235,10 @@ if ($lastOrder && $lastOrder['status'] === 'pending' && count($lastOrderItems) >
 
     <?php else: ?>
 
-        <!-- ΚΑΝΕΝΑ ACTIVE ORDER (ή lastOrder = served/cancelled/δεν υπάρχει) -->
         <div class="card p-4 shadow-sm text-center">
             <h4>No active order</h4>
-            <p class="text-muted">No pending order with items exists for this table.</p>
-            <a href="new_order.php?table=<?= $tableId ?>" class="btn btn-dark mt-3">
-                Create New Order
-            </a>
+            <p class="text-muted">No order with items exists for this table.</p>
+            <a href="new_order.php?table=<?= $tableId ?>" class="btn btn-dark mt-3">Create New Order</a>
         </div>
 
     <?php endif; ?>
