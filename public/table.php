@@ -48,6 +48,21 @@ $lastOrder      = null;
 $lastOrderItems = [];
 
 $orderQ = mysqli_query($conn, "
+    SELECT o.*
+    FROM orders o
+    WHERE o.table_id = $tableId
+      AND o.status = 'pending'
+      AND EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.id)
+    ORDER BY o.created_at DESC
+    ");
+
+// FETCH LAST ORDER FOR THIS TABLE
+// (για να ξέρουμε αν υπάρχει refunded / served / pending κλπ)
+// -------------------------
+$lastOrder      = null;
+$lastOrderItems = [];
+
+$orderQ = mysqli_query($conn, "
     SELECT *
     FROM orders
     WHERE table_id = $tableId
@@ -56,12 +71,29 @@ $orderQ = mysqli_query($conn, "
 ");
 
 if ($orderQ && mysqli_num_rows($orderQ) > 0) {
+    $activeOrder = mysqli_fetch_assoc($orderQ);
+
+    $orderId = $activeOrder['id'];
     $lastOrder = mysqli_fetch_assoc($orderQ);
 
     $itemsQ = mysqli_query($conn, "
         SELECT oi.*, m.name AS item_name, m.price
         FROM order_items oi
         JOIN menu m ON m.id = oi.menu_id
+        WHERE oi.order_id = {$lastOrder['id']}
+    ");
+
+    if ($itemsQ) {
+        $lastOrderItems = mysqli_fetch_all($itemsQ, MYSQLI_ASSOC);
+    }
+}
+
+// -------------------------
+// DETERMINE ACTIVE ORDER (pending + έχει items)
+// -------------------------
+$activeOrder = null;
+
+    // AUTO–SET TABLE TO OCCUPIED IF HAS ACTIVE ORDER
         WHERE oi.order_id = {$lastOrder['id']}
     ");
 
@@ -179,11 +211,62 @@ if ($lastOrder && $lastOrder['status'] === 'pending' && count($lastOrderItems) >
                 <ul class="list-group mb-3">
                     <?php foreach ($lastOrderItems as $item): ?>
                         <li class="list-group-item d-flex justify-content-between">
+                            <?= $item['item_name'] ?> (x<?= $item['quantity'] ?>)
+            <ul class="list-group mb-3">
+                <?php foreach ($activeOrder['items'] as $item): ?>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <?= htmlspecialchars($item['item_name']) ?> (x<?= (int)$item['quantity'] ?>)
+                        <strong><?= number_format($item['price'] * $item['quantity'], 2) ?>€</strong>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+            <a href="add_items.php?order=<?= $activeOrder['id'] ?>" class="btn btn-dark mt-3">Add Items</a>
+
+            <a href="close_order.php?id=<?= $activeOrder['id'] ?>"
+               class="btn btn-success mt-3">
+                Close Order
+            </a>
+
+            <a href="cancel_order.php?id=<?= $activeOrder['id'] ?>"
+               class="btn btn-danger mt-3"
+               onclick="return confirm('Are you sure you want to cancel this order?');">
+                Cancel Order
+            </a>
+
+            <a href="refund_order.php?id=<?= $activeOrder['id'] ?>"
+               class="btn btn-warning mt-3"
+               onclick="return confirm('Refund this order?');">
+                Refund
+            </a>
+        </div>
+
+    <?php elseif ($lastOrder && $lastOrder['status'] === 'refunded'): ?>
+
+        <!-- LAST ORDER IS REFUNDED – δείχνουμε info + κουμπί για νέο order -->
+        <div class="card p-4 shadow-sm">
+            <h4 class="fw-bold">Order #<?= $lastOrder['id'] ?></h4>
+            <p><strong>Created:</strong> <?= $lastOrder['created_at'] ?></p>
+            <p><strong>Status:</strong> Refunded</p>
+
+            <hr>
+
+            <h5>Items</h5>
+            <?php if (count($lastOrderItems) > 0): ?>
+                <ul class="list-group mb-3">
+                    <?php foreach ($lastOrderItems as $item): ?>
+                        <li class="list-group-item d-flex justify-content-between">
                             <?= htmlspecialchars($item['item_name']) ?> (x<?= (int)$item['quantity'] ?>)
                             <strong><?= number_format($item['price'] * $item['quantity'], 2) ?>€</strong>
                         </li>
                     <?php endforeach; ?>
                 </ul>
+            <?php else: ?>
+                <p class="text-muted">No items recorded for this order.</p>
+            <?php endif; ?>
+
+            <a href="add_items.php?order=<?= $activeOrder['id'] ?>" class="btn btn-dark mt-3">Add Items</a>
+            <a href="close_order.php?id=<?= $activeOrder['id'] ?>" class="btn btn-success mt-3">Close Order</a>
             <?php else: ?>
                 <p class="text-muted">No items recorded for this order.</p>
             <?php endif; ?>

@@ -6,4 +6,4 @@ node_modules/
 .vscode/
 .idea/
 Thumbs.db
-public/includes/db.php
+the-deadline-diner/public/includes/db.php
