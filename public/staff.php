@@ -1,115 +1,163 @@
 <?php
-// --- Προστασία σελίδας (μόνο manager) ---
-require_once "includes/db.php";
+include "includes/auth.php";   // ΔΕΝ κλειδώνει τίποτα — απλώς κρατά session
+include "includes/header.php";
+include "includes/db.php";
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Fetch all waiters
+$usersQ = mysqli_query($conn, "
+    SELECT id, name, role, shift_active, shift_started_at
+    FROM users
+    WHERE role = 'waiter'
+    ORDER BY name ASC
+");
+$waiters = mysqli_fetch_all($usersQ, MYSQLI_ASSOC);
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'manager') {
-    // Αν δεν είναι manager, τον πετάμε στο login
-    header("Location: login.php");
-    exit;
-}
+// Handle Start Shift
+if (isset($_POST['start_shift'])) {
+    $id = intval($_POST['user_id']);
+    $password = $_POST['password'];
 
-// --- Φέρνουμε όλα τα users από τη βάση ---
-$usersQ = mysqli_query(
-    $conn,
-    "SELECT id, name, email, role, created_at 
-     FROM users 
-     ORDER BY role DESC, name ASC"
-);
+    // Validate password
+    $q = mysqli_query($conn, "SELECT password_hash FROM users WHERE id=$id");
+    $row = mysqli_fetch_assoc($q);
 
-$managers = [];
-$staff    = [];
-
-if ($usersQ && mysqli_num_rows($usersQ) > 0) {
-    while ($u = mysqli_fetch_assoc($usersQ)) {
-        if ($u['role'] === 'manager') {
-            $managers[] = $u;
-        } else {
-            $staff[] = $u;
-        }
+    if ($row && password_verify($password, $row['password_hash'])) {
+        mysqli_query($conn, "
+            UPDATE users 
+            SET shift_active = 1, shift_started_at = NOW()
+            WHERE id = $id
+        ");
+        header("Location: staff.php?started=1");
+        exit;
+    } else {
+        header("Location: staff.php?error=password");
+        exit;
     }
 }
 
-include "includes/header.php";
+// Handle End Shift
+if (isset($_POST['end_shift'])) {
+    $id = intval($_POST['user_id']);
+    $password = $_POST['password'];
+
+    $q = mysqli_query($conn, "SELECT password_hash FROM users WHERE id=$id");
+    $row = mysqli_fetch_assoc($q);
+
+    if ($row && password_verify($password, $row['password_hash'])) {
+        mysqli_query($conn, "
+            UPDATE users 
+            SET shift_active = 0, shift_started_at = NULL
+            WHERE id = $id
+        ");
+        header("Location: staff.php?ended=1");
+        exit;
+    } else {
+        header("Location: staff.php?error=password");
+        exit;
+    }
+}
 ?>
 
-<h1 class="fw-bold mb-4">Staff Dashboard</h1>
-<p class="text-muted mb-4">
-    Overview of all staff members in <strong>The Deadline Diner</strong>.
-</p>
+<div class="container my-4">
 
-<!-- MANAGERS SECTION -->
-<?php if (count($managers) > 0): ?>
-    <h4 class="mb-3">Management</h4>
-    <div class="row g-3 mb-4">
-        <?php foreach ($managers as $user): ?>
-            <div class="col-md-4">
-                <div class="card table-card shadow-sm h-100">
-                    <div class="card-body">
-                        <span class="badge bg-primary mb-2">Manager</span>
-                        <h5 class="card-title mb-1">
-                            <?= htmlspecialchars($user['name']) ?>
-                        </h5>
-                        <p class="card-text text-muted mb-2">
-                            <?= htmlspecialchars($user['email']) ?>
+    <?php if (isset($_GET['started'])): ?>
+        <div class="alert alert-success">Shift started successfully!</div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['ended'])): ?>
+        <div class="alert alert-warning">Shift ended.</div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['error']) && $_GET['error'] == 'password'): ?>
+        <div class="alert alert-danger">Incorrect password!</div>
+    <?php endif; ?>
+
+    <h1 class="fw-bold mb-4">Staff Dashboard</h1>
+
+    <div class="row">
+
+        <?php foreach ($waiters as $w): ?>
+            <div class="col-md-4 mb-3">
+                <div class="card p-3 shadow-sm">
+
+                    <h4 class="fw-bold mb-2"><?= htmlspecialchars($w['name']) ?></h4>
+
+                    <?php if ($w['shift_active']): ?>
+                        <span class="badge bg-success">Online</span>
+                        <p class="text-muted mt-2">
+                            Started: <?= $w['shift_started_at'] ?>
                         </p>
-                        <p class="card-text">
-                            <small class="text-muted">
-                                Joined: <?= htmlspecialchars($user['created_at']) ?>
-                            </small>
-                        </p>
-                    </div>
+                    <?php else: ?>
+                        <span class="badge bg-secondary">Offline</span>
+                    <?php endif; ?>
+
+                    <hr>
+
+                    <!-- START SHIFT BUTTON -->
+                    <?php if (!$w['shift_active']): ?>
+                        <button 
+                            class="btn btn-dark w-100"
+                            onclick="openModal(<?= $w['id'] ?>, 'start')">
+                            Start Shift
+                        </button>
+                    <?php endif; ?>
+
+                    <!-- END SHIFT BUTTON -->
+                    <?php if ($w['shift_active']): ?>
+                        <button 
+                            class="btn btn-danger w-100"
+                            onclick="openModal(<?= $w['id'] ?>, 'end')">
+                            End Shift
+                        </button>
+                    <?php endif; ?>
+
                 </div>
             </div>
         <?php endforeach; ?>
+
     </div>
-<?php endif; ?>
+</div>
 
-<!-- STAFF SECTION -->
-<h4 class="mb-3">Waiters / Staff</h4>
+<!-- PASSWORD MODAL -->
+<div class="modal fade" id="pwModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="POST" class="modal-content">
+      
+      <div class="modal-header">
+        <h5 id="pwModalTitle" class="modal-title">Enter Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
 
-<?php if (count($staff) === 0): ?>
-    <div class="alert alert-info">
-        No staff members found yet.  
-        You can insert them manually in the <code>users</code> table for τώρα.
-    </div>
-<?php else: ?>
-    <div class="row g-3">
-        <?php foreach ($staff as $user): ?>
-            <div class="col-md-4">
-                <div class="card table-card shadow-sm h-100">
-                    <div class="card-body d-flex flex-column">
-                        <span class="badge bg-secondary mb-2">Staff</span>
+      <div class="modal-body">
+          <input type="hidden" name="user_id" id="modalUserId">
+          <input type="password" name="password" class="form-control" placeholder="Password" required>
+      </div>
 
-                        <h5 class="card-title mb-1">
-                            <?= htmlspecialchars($user['name']) ?>
-                        </h5>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="pwModalButton" name="">Confirm</button>
+      </div>
 
-                        <p class="card-text text-muted mb-2">
-                            <?= htmlspecialchars($user['email']) ?>
-                        </p>
+    </form>
+  </div>
+</div>
 
-                        <p class="card-text mt-auto">
-                            <small class="text-muted">
-                                Joined: <?= htmlspecialchars($user['created_at']) ?>
-                            </small>
-                        </p>
+<script>
+function openModal(userId, action) {
+    document.getElementById("modalUserId").value = userId;
 
-                        <!-- Μελλοντικά εδώ μπορούμε να βάλουμε Edit / Deactivate κουμπιά -->
-                        <!--
-                        <div class="mt-2 d-flex gap-2">
-                            <a href="#" class="btn btn-sm btn-outline-dark">Edit</a>
-                            <a href="#" class="btn btn-sm btn-outline-danger">Deactivate</a>
-                        </div>
-                        -->
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
+    if (action === 'start') {
+        document.getElementById("pwModalTitle").innerText = "Start Shift";
+        document.getElementById("pwModalButton").innerText = "Start";
+        document.getElementById("pwModalButton").name = "start_shift";
+    } else {
+        document.getElementById("pwModalTitle").innerText = "End Shift";
+        document.getElementById("pwModalButton").innerText = "End";
+        document.getElementById("pwModalButton").name = "end_shift";
+    }
+
+    new bootstrap.Modal(document.getElementById("pwModal")).show();
+}
+</script>
 
 <?php include "includes/footer.php"; ?>

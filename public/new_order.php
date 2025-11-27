@@ -16,6 +16,13 @@ mysqli_query($conn, $sql);
 
 $newOrderId = mysqli_insert_id($conn);
 
+// --- Assign Table To Waiter ---
+mysqli_query($conn, "
+    UPDATE tables
+    SET assigned_waiter_id = {$_SESSION['user_id']}
+    WHERE id = $tableId
+");
+
 // --- Redirect to add items page ---
 header("Location: add_items.php?order=$newOrderId");
 exit;
