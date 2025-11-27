@@ -45,6 +45,14 @@ if (isset($_POST['add_item'])) {
         VALUES ($orderId, $menuId, $quantity)
     ");
 
+    // --- Assign Table To Waiter ---
+    $tableIdForOrder = intval($order['table_id']);
+    mysqli_query($conn, "
+    UPDATE tables
+    SET assigned_waiter_id = {$_SESSION['user_id']}
+    WHERE id = $tableIdForOrder
+");
+
     // 2. Αν το τραπέζι είναι ακόμη free, το κάνουμε occupied
     //    (έχουμε ήδη το $order από πιο πάνω: SELECT orders.*, tables.name AS table_name ...)
     $tableIdForOrder = intval($order['table_id']);
@@ -192,8 +200,8 @@ $orderItems = mysqli_fetch_all($itemsQ, MYSQLI_ASSOC);
                     
                 <h4 class="fw-bold">Total: <?= number_format($total, 2) ?>€</h4>
 
-                <a href="close_order.php?id=<?= $orderId ?>" class="btn btn-success mt-3 w-100">
-                    Close Order
+                <a href="table.php?id=<?= $order['table_id'] ?>" class="btn btn-primary mt-3 w-100">
+                    View Table
                 </a>
             <?php endif; ?>
         </div>

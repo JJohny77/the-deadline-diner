@@ -3,23 +3,28 @@ include "includes/auth.php";
 include "includes/header.php";
 include "includes/db.php";
 
-// -------------------------
-// VALIDATE table ID
-// -------------------------
+// ===============================
+// VALIDATE TABLE ID
+// ===============================
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     echo "<h2>Invalid table selected.</h2>";
     include "includes/footer.php";
     exit;
 }
 
-$tableId = intval($_GET['id']);
+$tableId = (int)$_GET['id'];
 
-// -------------------------
-// FETCH TABLE DETAILS
-// -------------------------
-$q = mysqli_query($conn, "SELECT * FROM tables WHERE id = $tableId");
+// ===============================
+// FETCH TABLE + ASSIGNED WAITER
+// ===============================
+$q = mysqli_query($conn, "
+    SELECT t.*, w.name AS assigned_waiter_name
+    FROM tables t
+    LEFT JOIN users w ON w.id = t.assigned_waiter_id
+    WHERE t.id = $tableId
+");
 
-if (mysqli_num_rows($q) === 0) {
+if (!$q || mysqli_num_rows($q) === 0) {
     echo "<h2>Table not found.</h2>";
     include "includes/footer.php";
     exit;
@@ -27,9 +32,9 @@ if (mysqli_num_rows($q) === 0) {
 
 $table = mysqli_fetch_assoc($q);
 
-// -------------------------
-// HANDLE STATUS CHANGE (χειροκίνητα buttons)
-// -------------------------
+// ===============================
+// HANDLE STATUS CHANGE
+// ===============================
 if (isset($_POST['change_status'])) {
     $newStatus = mysqli_real_escape_string($conn, $_POST['change_status']);
     $allowed   = ['free', 'occupied', 'reserved'];
@@ -40,29 +45,10 @@ if (isset($_POST['change_status'])) {
     }
 }
 
-// -------------------------
-// FETCH LAST ORDER FOR THIS TABLE
-// (για να ξέρουμε αν υπάρχει refunded / served / pending κλπ)
-// -------------------------
-$lastOrder      = null;
-$lastOrderItems = [];
-
-$orderQ = mysqli_query($conn, "
-    SELECT o.*
-    FROM orders o
-    WHERE o.table_id = $tableId
-      AND o.status = 'pending'
-      AND EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.id)
-    ORDER BY o.created_at DESC
-    ");
-
-// FETCH LAST ORDER FOR THIS TABLE
-// (για να ξέρουμε αν υπάρχει refunded / served / pending κλπ)
-// -------------------------
-$lastOrder      = null;
-$lastOrderItems = [];
-
-$orderQ = mysqli_query($conn, "
+// ===============================
+// FETCH LAST ORDER
+// ===============================
+$lastOrderQ = mysqli_query($conn, "
     SELECT *
     FROM orders
     WHERE table_id = $tableId
@@ -70,11 +56,11 @@ $orderQ = mysqli_query($conn, "
     LIMIT 1
 ");
 
-if ($orderQ && mysqli_num_rows($orderQ) > 0) {
-    $activeOrder = mysqli_fetch_assoc($orderQ);
+$lastOrder      = null;
+$lastOrderItems = [];
 
-    $orderId = $activeOrder['id'];
-    $lastOrder = mysqli_fetch_assoc($orderQ);
+if ($lastOrderQ && mysqli_num_rows($lastOrderQ) > 0) {
+    $lastOrder = mysqli_fetch_assoc($lastOrderQ);
 
     $itemsQ = mysqli_query($conn, "
         SELECT oi.*, m.name AS item_name, m.price
@@ -88,46 +74,36 @@ if ($orderQ && mysqli_num_rows($orderQ) > 0) {
     }
 }
 
-// -------------------------
-// DETERMINE ACTIVE ORDER (pending + έχει items)
-// -------------------------
+// ===============================
+// DETERMINE ACTIVE ORDER
+// ===============================
 $activeOrder = null;
 
-    // AUTO–SET TABLE TO OCCUPIED IF HAS ACTIVE ORDER
-        WHERE oi.order_id = {$lastOrder['id']}
-    ");
+if ($lastOrder && $lastOrder['status'] === "pending" && count($lastOrderItems) > 0) {
+    $activeOrder = $lastOrder;
+    $activeOrder['items'] = $lastOrderItems;
 
-    if ($itemsQ) {
-        $lastOrderItems = mysqli_fetch_all($itemsQ, MYSQLI_ASSOC);
-    }
-}
-
-// -------------------------
-// DETERMINE ACTIVE ORDER (pending + έχει items)
-// -------------------------
-$activeOrder = null;
-
-if ($lastOrder && $lastOrder['status'] === 'pending' && count($lastOrderItems) > 0) {
-    $activeOrder           = $lastOrder;
-    $activeOrder['items']  = $lastOrderItems;
-
-    // Αν υπάρχει active order, σιγουρεύουμε ότι το τραπέζι είναι occupied
-    if ($table['status'] !== 'occupied') {
+    // Auto-occupy table
+    if ($table['status'] !== "occupied") {
         mysqli_query($conn, "UPDATE tables SET status='occupied' WHERE id=$tableId");
-        $table['status'] = 'occupied';
+        $table['status'] = "occupied";
     }
-} else {
-    // Αν δεν υπάρχει active order (π.χ. refunded/cancelled/served)
-    // και το τραπέζι είχε μείνει occupied, μπορείς να το γυρίσεις σε free
-    // (συνήθως το κάνουμε ήδη στο close_order/refund_order)
 }
 ?>
 
 <div class="container my-4">
 
+    <!-- SUCCESS MESSAGES -->
     <?php if (isset($_GET['closed'])): ?>
         <div class="alert alert-success alert-dismissible fade show">
             <strong>Order closed successfully!</strong> The table is now free.
+            <button class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['refunded'])): ?>
+        <div class="alert alert-warning alert-dismissible fade show">
+            <strong>Order refunded successfully!</strong>
             <button class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
@@ -148,6 +124,13 @@ if ($lastOrder && $lastOrder['status'] === 'pending' && count($lastOrderItems) >
 
         <p class="mt-2 text-muted"><?= (int)$table['seats'] ?> seats</p>
 
+        <?php if ($table['assigned_waiter_id']): ?>
+            <p class="text-muted small">
+                Assigned to:
+                <strong><?= htmlspecialchars($table['assigned_waiter_name']) ?></strong>
+            </p>
+        <?php endif; ?>
+
         <form method="POST" class="mt-3 d-flex gap-2 flex-wrap">
             <button name="change_status" value="free"      class="btn btn-outline-success btn-sm">Mark Free</button>
             <button name="change_status" value="occupied"  class="btn btn-outline-danger  btn-sm">Mark Occupied</button>
@@ -155,18 +138,22 @@ if ($lastOrder && $lastOrder['status'] === 'pending' && count($lastOrderItems) >
         </form>
     </div>
 
-    <!-- ORDER SECTION -->
+    <!-- ACTIVE ORDER -->
     <?php if ($activeOrder): ?>
 
-        <!-- ACTIVE (PENDING) ORDER CARD -->
         <div class="card p-4 shadow-sm">
-            <h4 class="fw-bold">Active Order #<?= $activeOrder['id'] ?></h4>
+            <h4 class="fw-bold">
+                Active Order #<?= $activeOrder['id'] ?>
+                <?php if ($table['assigned_waiter_name']): ?>
+                    <small class="text-muted">(<?= htmlspecialchars($table['assigned_waiter_name']) ?>)</small>
+                <?php endif; ?>
+            </h4>
+
             <p><strong>Created:</strong> <?= $activeOrder['created_at'] ?></p>
-            <p><strong>Status:</strong> <?= ucfirst($activeOrder['status']) ?></p>
 
             <hr>
-
             <h5>Items</h5>
+
             <ul class="list-group mb-3">
                 <?php foreach ($activeOrder['items'] as $item): ?>
                     <li class="list-group-item d-flex justify-content-between">
@@ -175,121 +162,60 @@ if ($lastOrder && $lastOrder['status'] === 'pending' && count($lastOrderItems) >
                     </li>
                 <?php endforeach; ?>
             </ul>
-
-            <a href="add_items.php?order=<?= $activeOrder['id'] ?>" class="btn btn-dark mt-3">Add Items</a>
-
-            <a href="close_order.php?id=<?= $activeOrder['id'] ?>"
-               class="btn btn-success mt-3">
-                Close Order
-            </a>
-
-            <a href="cancel_order.php?id=<?= $activeOrder['id'] ?>"
-               class="btn btn-danger mt-3"
-               onclick="return confirm('Are you sure you want to cancel this order?');">
-                Cancel Order
-            </a>
-
-            <a href="refund_order.php?id=<?= $activeOrder['id'] ?>"
-               class="btn btn-warning mt-3"
-               onclick="return confirm('Refund this order?');">
-                Refund
-            </a>
-        </div>
-
-    <?php elseif ($lastOrder && $lastOrder['status'] === 'refunded'): ?>
-
-        <!-- LAST ORDER IS REFUNDED – δείχνουμε info + κουμπί για νέο order -->
-        <div class="card p-4 shadow-sm">
-            <h4 class="fw-bold">Order #<?= $lastOrder['id'] ?></h4>
-            <p><strong>Created:</strong> <?= $lastOrder['created_at'] ?></p>
-            <p><strong>Status:</strong> Refunded</p>
-
-            <hr>
-
-            <h5>Items</h5>
-            <?php if (count($lastOrderItems) > 0): ?>
-                <ul class="list-group mb-3">
-                    <?php foreach ($lastOrderItems as $item): ?>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <?= $item['item_name'] ?> (x<?= $item['quantity'] ?>)
-            <ul class="list-group mb-3">
-                <?php foreach ($activeOrder['items'] as $item): ?>
-                    <li class="list-group-item d-flex justify-content-between">
-                        <?= htmlspecialchars($item['item_name']) ?> (x<?= (int)$item['quantity'] ?>)
-                        <strong><?= number_format($item['price'] * $item['quantity'], 2) ?>€</strong>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-
-            <a href="add_items.php?order=<?= $activeOrder['id'] ?>" class="btn btn-dark mt-3">Add Items</a>
-
-            <a href="close_order.php?id=<?= $activeOrder['id'] ?>"
-               class="btn btn-success mt-3">
-                Close Order
-            </a>
-
-            <a href="cancel_order.php?id=<?= $activeOrder['id'] ?>"
-               class="btn btn-danger mt-3"
-               onclick="return confirm('Are you sure you want to cancel this order?');">
-                Cancel Order
-            </a>
-
-            <a href="refund_order.php?id=<?= $activeOrder['id'] ?>"
-               class="btn btn-warning mt-3"
-               onclick="return confirm('Refund this order?');">
-                Refund
-            </a>
-        </div>
-
-    <?php elseif ($lastOrder && $lastOrder['status'] === 'refunded'): ?>
-
-        <!-- LAST ORDER IS REFUNDED – δείχνουμε info + κουμπί για νέο order -->
-        <div class="card p-4 shadow-sm">
-            <h4 class="fw-bold">Order #<?= $lastOrder['id'] ?></h4>
-            <p><strong>Created:</strong> <?= $lastOrder['created_at'] ?></p>
-            <p><strong>Status:</strong> Refunded</p>
-
-            <hr>
-
-            <h5>Items</h5>
-            <?php if (count($lastOrderItems) > 0): ?>
-                <ul class="list-group mb-3">
-                    <?php foreach ($lastOrderItems as $item): ?>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <?= htmlspecialchars($item['item_name']) ?> (x<?= (int)$item['quantity'] ?>)
-                            <strong><?= number_format($item['price'] * $item['quantity'], 2) ?>€</strong>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php else: ?>
-                <p class="text-muted">No items recorded for this order.</p>
-            <?php endif; ?>
 
             <a href="add_items.php?order=<?= $activeOrder['id'] ?>" class="btn btn-dark mt-3">Add Items</a>
             <a href="close_order.php?id=<?= $activeOrder['id'] ?>" class="btn btn-success mt-3">Close Order</a>
-            <?php else: ?>
-                <p class="text-muted">No items recorded for this order.</p>
-            <?php endif; ?>
-
-            <div class="alert alert-info mt-3">
-                This order is refunded.
-            </div>
-
-            <!-- ΕΔΩ είναι το κουμπί που θες -->
-            <a href="new_order.php?table=<?= $tableId ?>" class="btn btn-dark mt-3">
-                Create New Order
+            <a href="cancel_order.php?id=<?= $activeOrder['id'] ?>" class="btn btn-danger mt-3"
+               onclick="return confirm('Cancel this order?');">
+               Cancel Order
             </a>
         </div>
 
+    <!-- SERVED ORDER -->
+    <?php elseif ($lastOrder && $lastOrder['status'] === "served"): ?>
+
+        <div class="card p-4 shadow-sm">
+            <h4 class="fw-bold">Order #<?= $lastOrder['id'] ?></h4>
+            <p><strong>Status:</strong> Served</p>
+
+            <hr>
+            <h5>Items</h5>
+
+            <ul class="list-group mb-3">
+                <?php foreach ($lastOrderItems as $item): ?>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <?= htmlspecialchars($item['item_name']) ?> (x<?= (int)$item['quantity'] ?>)
+                        <strong><?= number_format($item['price'] * $item['quantity'], 2) ?>€</strong>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+            <a href="refund_order.php?id=<?= $lastOrder['id'] ?>"
+               class="btn btn-warning mt-3"
+               onclick="return confirm('Refund this order?');">
+                Refund
+            </a>
+        </div>
+
+    <!-- REFUNDED ORDER -->
+    <?php elseif ($lastOrder && $lastOrder['status'] === "refunded"): ?>
+
+        <div class="card p-4 shadow-sm">
+            <h4 class="fw-bold">Order #<?= $lastOrder['id'] ?></h4>
+            <p><strong>Status:</strong> Refunded</p>
+
+            <div class="alert alert-info mt-3">This order has been refunded.</div>
+
+            <a href="new_order.php?table=<?= $tableId ?>" class="btn btn-dark mt-3">Create New Order</a>
+        </div>
+
+    <!-- NO ORDER -->
     <?php else: ?>
 
-        <!-- ΚΑΝΕΝΑ ACTIVE ORDER (ή lastOrder = served/cancelled/δεν υπάρχει) -->
         <div class="card p-4 shadow-sm text-center">
             <h4>No active order</h4>
-            <p class="text-muted">No pending order with items exists for this table.</p>
-            <a href="new_order.php?table=<?= $tableId ?>" class="btn btn-dark mt-3">
-                Create New Order
-            </a>
+            <p class="text-muted">There is no pending order.</p>
+            <a href="new_order.php?table=<?= $tableId ?>" class="btn btn-dark mt-3">Create New Order</a>
         </div>
 
     <?php endif; ?>
