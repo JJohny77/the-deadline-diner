@@ -15,7 +15,7 @@
         <div class="card shadow-sm p-3">
             <h4>Staff Dashboard</h4>
             <p>Overview of waiters, shifts, and assignments.</p>
-            <a href="#" class="btn btn-dark">Go</a>
+            <a href="staff.php" class="btn btn-dark">Go</a>
         </div>
     </div>
 

@@ -45,14 +45,6 @@ if (isset($_POST['add_item'])) {
         VALUES ($orderId, $menuId, $quantity)
     ");
 
-    // --- Assign Table To Waiter ---
-    $tableIdForOrder = intval($order['table_id']);
-    mysqli_query($conn, "
-    UPDATE tables
-    SET assigned_waiter_id = {$_SESSION['user_id']}
-    WHERE id = $tableIdForOrder
-");
-
     // 2. Αν το τραπέζι είναι ακόμη free, το κάνουμε occupied
     //    (έχουμε ήδη το $order από πιο πάνω: SELECT orders.*, tables.name AS table_name ...)
     $tableIdForOrder = intval($order['table_id']);

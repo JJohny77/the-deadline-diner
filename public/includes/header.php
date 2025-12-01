@@ -45,6 +45,11 @@ $currentPage = basename($_SERVER['PHP_SELF']); // π.χ. "tables.php"
                        href="tables.php">Tables</a>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link <?= $currentPage === 'orders.php' ? 'active fw-bold' : '' ?>" 
+                        href="orders.php">Orders</a>
+                </li>
+
                 <!-- MANAGER LINKS -->
                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'manager'): ?>
 
@@ -53,10 +58,6 @@ $currentPage = basename($_SERVER['PHP_SELF']); // π.χ. "tables.php"
                            href="menu.php">Menu</a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link <?= $currentPage === 'orders.php' ? 'active fw-bold' : '' ?>" 
-                           href="orders.php">Orders</a>
-                    </li>
                 <?php endif; ?>
 
 
