@@ -195,6 +195,12 @@ if ($lastOrder && $lastOrder['status'] === "pending" && count($lastOrderItems) >
                onclick="return confirm('Refund this order?');">
                 Refund
             </a>
+
+            <!-- NEW BUTTON HERE -->
+            <a href="new_order.php?table=<?= $tableId ?>" 
+            class="btn btn-dark mt-3 w-100">
+            Create New Order
+            </a>
         </div>
 
     <!-- REFUNDED ORDER -->
@@ -206,7 +212,7 @@ if ($lastOrder && $lastOrder['status'] === "pending" && count($lastOrderItems) >
 
             <div class="alert alert-info mt-3">This order has been refunded.</div>
 
-            <a href="new_order.php?table=<?= $tableId ?>" class="btn btn-dark mt-3">Create New Order</a>
+            <a href="new_order.php?table=<?= $tableId ?>" class="btn btn-dark">Create New Order</a>
         </div>
 
     <!-- NO ORDER -->

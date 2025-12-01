@@ -24,7 +24,7 @@ if (mysqli_num_rows($q) === 0) {
 }
 
 $order = mysqli_fetch_assoc($q);
-$tableId = $order['table_id'];
+$tableId = intval($order['table_id']);
 
 // -------------------------
 // MARK ORDER AS SERVED
@@ -36,11 +36,12 @@ mysqli_query($conn, "
 ");
 
 // -------------------------
-// FREE THE TABLE
+// FREE THE TABLE + REMOVE WAITER ASSIGNMENT
 // -------------------------
 mysqli_query($conn, "
     UPDATE tables
-    SET status = 'free'
+    SET status = 'free',
+        assigned_waiter_id = NULL
     WHERE id = $tableId
 ");
 
