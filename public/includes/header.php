@@ -3,7 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$currentPage = basename($_SERVER['PHP_SELF']); // π.χ. "tables.php"
+$currentPage = basename($_SERVER['PHP_SELF']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,12 +14,43 @@ $currentPage = basename($_SERVER['PHP_SELF']); // π.χ. "tables.php"
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+
+    <!-- GLOBAL CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/floorplan.css">
 </head>
+
 <body>
+
+<!-- GLOBAL DARK MODE SCRIPT -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const toggle = document.getElementById('themeToggleGlobal');
+    const body = document.body;
+
+    function applyTheme(theme) {
+        const dark = theme === "dark";
+        body.classList.toggle("dd-dark", dark);
+        if (toggle) toggle.textContent = dark ? "☀️" : "🌙";
+    }
+
+    const stored = localStorage.getItem("dd_theme") || "light";
+    applyTheme(stored);
+
+    if (toggle) {
+        toggle.addEventListener("click", function () {
+            const dark = body.classList.contains("dd-dark");
+            const newTheme = dark ? "light" : "dark";
+            localStorage.setItem("dd_theme", newTheme);
+            applyTheme(newTheme);
+        });
+    }
+});
+</script>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
+
         <a class="navbar-brand fw-bold" href="index.php">The Deadline Diner</a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -27,46 +58,35 @@ $currentPage = basename($_SERVER['PHP_SELF']); // π.χ. "tables.php"
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
+
             <ul class="navbar-nav ms-auto gap-3">
 
-                <!-- PUBLIC LINKS -->
                 <li class="nav-item">
-                    <a class="nav-link <?= $currentPage === 'index.php' ? 'active fw-bold' : '' ?>" 
-                       href="index.php">Home</a>
+                    <a class="nav-link <?= $currentPage === 'index.php' ? 'active fw-bold' : '' ?>" href="index.php">Home</a>
                 </li>
 
                 <li class="nav-item">
-                        <a class="nav-link <?= $currentPage === 'staff.php' ? 'active fw-bold' : '' ?>" 
-                           href="staff.php">Staff</a>
+                    <a class="nav-link <?= $currentPage === 'staff.php' ? 'active fw-bold' : '' ?>" href="staff.php">Staff</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link <?= $currentPage === 'tables.php' ? 'active fw-bold' : '' ?>" 
-                       href="tables.php">Tables</a>
+                    <a class="nav-link <?= $currentPage === 'tables.php' ? 'active fw-bold' : '' ?>" href="tables.php">Tables</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link <?= $currentPage === 'orders.php' ? 'active fw-bold' : '' ?>" 
-                        href="orders.php">Orders</a>
+                    <a class="nav-link <?= $currentPage === 'orders.php' ? 'active fw-bold' : '' ?>" href="orders.php">Orders</a>
                 </li>
 
-                <!-- MANAGER LINKS -->
                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'manager'): ?>
-
                     <li class="nav-item">
-                        <a class="nav-link <?= $currentPage === 'menu.php' ? 'active fw-bold' : '' ?>" 
-                           href="menu.php">Menu</a>
+                        <a class="nav-link <?= $currentPage === 'menu.php' ? 'active fw-bold' : '' ?>" href="menu.php">Menu</a>
                     </li>
-
                 <?php endif; ?>
 
-
-                <!-- AUTH LINKS -->
                 <?php if (!isset($_SESSION['user_id'])): ?>
 
                     <li class="nav-item">
-                        <a class="nav-link <?= $currentPage === 'login.php' ? 'active fw-bold' : '' ?>"
-                           href="login.php">Login</a>
+                        <a class="nav-link <?= $currentPage === 'login.php' ? 'active fw-bold' : '' ?>" href="login.php">Login</a>
                     </li>
 
                 <?php else: ?>
@@ -83,6 +103,13 @@ $currentPage = basename($_SERVER['PHP_SELF']); // π.χ. "tables.php"
                     </li>
 
                 <?php endif; ?>
+
+                <!-- 🌙 GLOBAL DARK MODE BUTTON -->
+                <li class="nav-item">
+                    <button id="themeToggleGlobal" class="btn btn-sm btn-outline-light">
+                        🌙
+                    </button>
+                </li>
 
             </ul>
         </div>

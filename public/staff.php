@@ -109,6 +109,58 @@ if ($isManager && isset($_POST['delete_waiter'])) {
 }
 
 // ===================================================
+// START SHIFT WITH PASSWORD
+// ===================================================
+if (isset($_POST['action']) && $_POST['action'] === 'start_shift') {
+    $waiterId = intval($_POST['waiter_id']);
+    $password = trim($_POST['password']);
+
+    $q = mysqli_query($conn, "SELECT password_hash FROM users WHERE id=$waiterId AND role='waiter'");
+    $w = mysqli_fetch_assoc($q);
+
+    if ($w && password_verify($password, $w['password_hash'])) {
+
+        mysqli_query($conn, "
+            UPDATE users
+            SET shift_active = 1,
+                shift_started_at = NOW()
+            WHERE id = $waiterId
+        ");
+
+        $success = "Shift started successfully!";
+
+    } else {
+        $errors[] = "Wrong password!";
+    }
+}
+
+
+// ===================================================
+// END SHIFT WITH PASSWORD
+// ===================================================
+if (isset($_POST['action']) && $_POST['action'] === 'end_shift') {
+    $waiterId = intval($_POST['waiter_id']);
+    $password = trim($_POST['password']);
+
+    $q = mysqli_query($conn, "SELECT password_hash FROM users WHERE id=$waiterId AND role='waiter'");
+    $w = mysqli_fetch_assoc($q);
+
+    if ($w && password_verify($password, $w['password_hash'])) {
+
+        mysqli_query($conn, "
+            UPDATE users
+            SET shift_active = 0
+            WHERE id = $waiterId
+        ");
+
+        $success = "Shift ended successfully!";
+
+    } else {
+        $errors[] = "Wrong password!";
+    }
+}
+
+// ===================================================
 // FETCH ALL WAITERS
 // ===================================================
 $waitersQ = mysqli_query($conn, "
@@ -192,13 +244,16 @@ $waiters = mysqli_fetch_all($waitersQ, MYSQLI_ASSOC);
 
                     <!-- START/END SHIFT -->
                     <?php if (!$w['shift_active']): ?>
-                        <a href="start_shift.php?id=<?= $w['id'] ?>" 
-                           class="btn btn-dark w-100 mb-2">Start Shift</a>
+                        <button class="btn btn-dark w-100 mb-2"
+                                onclick="openStartShiftModal(<?= $w['id'] ?>)">
+                            Start Shift
+                        </button>
                     <?php else: ?>
-                        <a href="end_shift.php?id=<?= $w['id'] ?>" 
-                           class="btn btn-danger w-100 mb-2">End Shift</a>
+                        <button class="btn btn-danger w-100 mb-2"
+                                onclick="openEndShiftModal(<?= $w['id'] ?>)">
+                            End Shift
+                        </button>
                     <?php endif; ?>
-
 
                     <!-- MANAGEMENT BUTTONS - ONLY OWNER -->
                     <?php if ($isManager): ?>
@@ -294,6 +349,66 @@ function openEditModal(id, name, email) {
 function openPasswordModal(id) {
     document.getElementById("passwordWaiterId").value = id;
     new bootstrap.Modal(document.getElementById("passwordModal")).show();
+}
+</script>
+
+<div class="modal fade" id="startShiftModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="POST" class="modal-content">
+
+        <input type="hidden" name="action" value="start_shift">
+        <input type="hidden" name="waiter_id" id="startShiftWaiterId">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Start Shift</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-dark">Confirm</button>
+        </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="endShiftModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="POST" class="modal-content">
+
+        <input type="hidden" name="action" value="end_shift">
+        <input type="hidden" name="waiter_id" id="endShiftWaiterId">
+
+        <div class="modal-header">
+            <h5 class="modal-title">End Shift</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-danger">Confirm</button>
+        </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openStartShiftModal(id) {
+    document.getElementById('startShiftWaiterId').value = id;
+    new bootstrap.Modal(document.getElementById('startShiftModal')).show();
+}
+
+function openEndShiftModal(id) {
+    document.getElementById('endShiftWaiterId').value = id;
+    new bootstrap.Modal(document.getElementById('endShiftModal')).show();
 }
 </script>
 

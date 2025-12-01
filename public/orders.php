@@ -161,21 +161,19 @@ function renderSingleOrderCard($order, $conn) {
                 <span class="badge bg-secondary"><?= ucfirst($order['status']) ?></span>
             </div>
 
-            <p class="mb-1"><strong>Table:</strong> <?= htmlspecialchars($order['table_name']) ?></p>
+            <p class="mb-1 order-card-label"><strong>Table:</strong> <?= htmlspecialchars($order['table_name']) ?></p>
 
             <?php if (!empty($order['waiter_name'])): ?>
-                <p class="mb-1"><strong>Waiter:</strong> <?= htmlspecialchars($order['waiter_name']) ?></p>
+                <p class="mb-1 order-card-label"><strong>Waiter:</strong> <?= htmlspecialchars($order['waiter_name']) ?></p>
             <?php endif; ?>
 
-            <p class="mb-1">
-                <small class="text-muted">
-                    Created: <?= $order['created_at'] ?>
-                </small>
+            <p class="mb-1 order-card-label">
+                <small>Created: <?= $order['created_at'] ?></small>
             </p>
 
             <hr class="my-2">
 
-            <h6 class="fw-bold mb-2">Items</h6>
+            <h6 class="fw-bold mb-2 order-card-heading">Items</h6>
 
             <?php if (empty($items)): ?>
                 <p class="text-muted">No items added.</p>
@@ -192,7 +190,10 @@ function renderSingleOrderCard($order, $conn) {
                     <?php endforeach; ?>
                 </ul>
 
-                <p class="fw-bold mb-0">Total: <?= number_format($total, 2) ?>€</p>
+                <p class="fw-bold mb-0 order-card-total">
+                    Total: <?= number_format($total, 2) ?>€
+                </p>
+
             <?php endif; ?>
 
             <a href="table.php?id=<?= $order['table_id'] ?>"

@@ -1,6 +1,6 @@
-</div> <!-- container END -->
+</div> <!-- page-wrapper END -->
 
-<footer class="bg-dark text-light text-center py-3 mt-auto">
+<footer class="app-footer text-center py-3 mt-auto">
     <p class="mb-0">&copy; 2025 The Deadline Diner — All Rights Reserved</p>
 </footer>
 
@@ -13,7 +13,9 @@
 <!-- Initialize selectpicker -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        $('.selectpicker').selectpicker();
+        if (window.$ && $('.selectpicker').length) {
+            $('.selectpicker').selectpicker();
+        }
     });
 </script>
 

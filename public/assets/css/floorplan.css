@@ -1,0 +1,282 @@
+/* ===================================================
+   FLOOR PLAN – CLASSIC RESTAURANT (WOOD FLOOR)
+   =================================================== */
+
+.restaurant-floor {
+    width: 100%;
+    max-width: 1100px;
+    height: 620px;
+    margin: 0 auto 2rem auto;
+    position: relative;
+
+    /* για mobile: αν δεν χωράει, κάνε scroll */
+    overflow: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scrolling σε iPhone */
+
+    /* “τοίχοι” του μαγαζιού */
+    border-radius: 22px;
+    border: 14px solid #3e2e26;
+
+    /* ξύλινο δάπεδο (σαν στην εικόνα) */
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #8b5a32 0px,
+            #8b5a32 38px,
+            #794623 38px,
+            #794623 76px
+        );
+    box-shadow:
+        inset 0 0 45px rgba(0, 0, 0, 0.45),
+        0 18px 35px rgba(0, 0, 0, 0.35);
+}
+
+/* διακοσμητικές ζώνες πάνω (BAR / KITCHEN) */
+.restaurant-floor::before,
+.restaurant-floor::after {
+    position: absolute;
+    top: 0;
+    height: 60px;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #f7e9d7;
+    z-index: 2;
+}
+
+.restaurant-floor::before {
+    content: "BAR";
+    left: 0;
+    background: linear-gradient(135deg, #302020, #4a2f27);
+    border-bottom-right-radius: 18px;
+}
+
+.restaurant-floor::after {
+    content: "KITCHEN";
+    right: 0;
+    background: linear-gradient(135deg, #272d34, #3a4148);
+    border-bottom-left-radius: 18px;
+}
+
+/* λίγο κενό πάνω από τα τραπέζια ώστε να μη πέφτουν κάτω από BAR/KITCHEN */
+.restaurant-floor > .table-item {
+    margin-top: 30px;
+}
+
+/* ===================================================
+   TABLES – τετράγωνα/ορθογώνια τραπέζια με καρέκλες
+   =================================================== */
+
+.table-item {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* τετράγωνα / ορθογώνια τραπέζια */
+    border-radius: 14px;
+
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+
+    /* 3D εφέ */
+    box-shadow:
+        0 6px 12px rgba(0, 0, 0, 0.45),
+        inset 0 0 14px rgba(0, 0, 0, 0.4);
+
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* hover για όλους (manager & waiters) */
+.table-item:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow:
+        0 10px 18px rgba(0, 0, 0, 0.55),
+        inset 0 0 16px rgba(0, 0, 0, 0.5);
+}
+
+/* “επιφάνεια τραπεζιού” – πιο φωτεινό κέντρο */
+.table-item::before {
+    content: "";
+    position: absolute;
+    inset: 12%;
+    border-radius: 10px;
+    background: radial-gradient(circle at 30% 20%, #ffffff, rgba(255,255,255,0.05));
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.35),
+        0 0 2px rgba(255, 255, 255, 0.3);
+    opacity: 0.95;
+}
+
+/* “καρέκλες” γύρω από το τραπέζι – 4 βασικές πλευρές */
+.table-item::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 18px;
+    border-radius: 4px;
+    background: #222;
+
+    box-shadow:
+        0 -140% 0 #222,   /* πάνω */
+        0  140% 0 #222,   /* κάτω */
+        140% 0 0 #222,    /* δεξιά */
+        -140% 0 0 #222;   /* αριστερά */
+}
+
+/* Αν κάποια στιγμή θέλεις στρογγυλά (R-1, R-2 κλπ),
+   μπορείς στο PHP να δώσεις class="table-item table-round" */
+.table-round {
+    border-radius: 999px;
+}
+.table-round::before {
+    border-radius: 999px;
+}
+
+/* ===================================================
+   ΧΡΩΜΑΤΑ ΑΝΑ STATUS
+   =================================================== */
+
+.table-free {
+    background: radial-gradient(circle at 30% 20%, #67d87e, #1e7b36) !important;
+}
+
+.table-occupied {
+    background: radial-gradient(circle at 30% 20%, #ff7f7f, #b02020) !important;
+}
+
+.table-reserved {
+    background: radial-gradient(circle at 30% 20%, #ffe38a, #c79511) !important;
+    color: #3b2c14 !important;
+}
+
+/* ===================================================
+   LABEL ΜΕΣΑ ΣΤΑ ΤΡΑΠΕΖΙΑ
+   =================================================== */
+
+.table-item .table-label {
+    position: relative;
+    z-index: 3;
+    font-size: 0.8rem;
+    line-height: 1.25;
+    padding: 0 4px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.table-item .table-label small {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+/* ===================================================
+   LEGEND (FREE / OCCUPIED / RESERVED)
+   =================================================== */
+
+.table-legend .badge {
+    min-width: 90px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    border-radius: 999px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+}
+
+/* λίγο κενό πάνω στον τίτλο */
+h1.fw-bold {
+    margin-top: 1rem;
+}
+
+/* Για τους σερβιτόρους (δεν κάνουν drag) */
+.table-item[data-can-drag="0"] {
+    cursor: pointer;
+}
+.table-item[data-can-drag="0"]:active {
+    transform: none;
+}
+
+/* ============================
+   RESPONSIVE / MOBILE
+   ============================ */
+
+/* Tablets */
+@media (max-width: 992px) {
+    .restaurant-floor {
+        height: 560px;
+    }
+}
+
+/* Large mobile */
+@media (max-width: 768px) {
+    .restaurant-floor {
+        height: 520px;
+    }
+
+    /* Τα BAR/KITCHEN να μικραίνουν και να μένουν στις γωνίες */
+    .restaurant-floor::before,
+    .restaurant-floor::after {
+        height: 45px;
+        font-size: 0.7rem;
+        padding: 0 12px;
+    }
+
+    .restaurant-floor::before {
+        border-bottom-right-radius: 14px;
+    }
+
+    .restaurant-floor::after {
+        border-bottom-left-radius: 14px;
+    }
+
+    /* λίγο παραπάνω κενό από πάνω για τα τραπέζια */
+    .restaurant-floor > .table-item {
+        margin-top: 45px;
+    }
+
+    .table-item .table-label {
+        font-size: 0.75rem;
+    }
+}
+
+/* Typical mobile */
+@media (max-width: 576px) {
+    .restaurant-floor {
+        height: 460px;
+        padding: 8px;
+    }
+
+    .table-item .table-label {
+        font-size: 0.7rem;
+    }
+}
+
+/* Πολύ μικρές οθόνες (π.χ. iPhone SE) */
+@media (max-width: 420px) {
+    .restaurant-floor {
+        height: 430px;
+    }
+
+    .table-item .table-label {
+        font-size: 0.68rem;
+    }
+}
+
+/* MOBILE: κρύβουμε BAR & KITCHEN */
+@media (max-width: 768px) {
+    .restaurant-floor::before,
+    .restaurant-floor::after {
+        display: none !important;
+    }
+
+    /* μικρό κενό ώστε τα τραπέζια να κάτσουν πιο πάνω */
+    .restaurant-floor > .table-item {
+        margin-top: 10px;
+    }
+}

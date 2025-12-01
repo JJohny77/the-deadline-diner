@@ -25,6 +25,7 @@ footer {
     opacity: 0.85;
     margin-top: auto;
 }
+
 .table-card {
     border-radius: 12px;
     transition: transform 0.15s ease;
@@ -42,4 +43,262 @@ footer {
 .add-items-select {
     height: 40px;
     padding: 6px 10px;
+}
+
+/* =====================================
+   HOME / DASHBOARD STYLING
+   ===================================== */
+
+.letter-spaced {
+    letter-spacing: 0.12em;
+}
+
+/* HERO CARD */
+.dashboard-hero {
+    border-radius: 18px;
+    padding: 24px 26px;
+    background: #ffffff;
+    border: none;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+}
+
+@media (min-width: 992px) {
+    .dashboard-hero {
+        padding: 28px 32px;
+    }
+}
+
+/* STAT CARDS */
+.stat-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 14px 16px 16px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.stat-sub {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    margin-bottom: 0;
+}
+
+/* SECTION TITLES */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* HOME CARDS (Quick access / Manager / Waiter panels) */
+.home-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 18px 18px 16px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.home-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 6px;
+}
+
+.home-card-text {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-bottom: 14px;
+}
+
+.home-card .btn {
+    margin-top: auto;
+}
+
+/* icon bubbles */
+.home-card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.bg-icon-blue {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.bg-icon-green {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+.bg-icon-orange {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+/* μικρά chips για τα τραπέζια του σερβιτόρου */
+.waiter-table-chip {
+    font-size: 0.85rem;
+    border-radius: 999px;
+    padding-inline: 12px;
+    padding-block: 6px;
+}
+
+/* RECENT ACTIVITY LIST */
+.recent-activity-list li {
+    padding: 4px 0;
+    font-size: 0.9rem;
+}
+
+.recent-activity-list li + li {
+    border-top: 1px dashed rgba(148, 163, 184, 0.5);
+    margin-top: 4px;
+    padding-top: 8px;
+}
+
+/* =====================================
+   DARK MODE
+   ===================================== */
+
+body.dd-dark {
+    background: #020617;
+    color: #e5e7eb;
+}
+
+body.dd-dark .navbar.navbar-dark {
+    background-color: #020617 !important;
+    border-bottom: 1px solid #111827;
+}
+
+body.dd-dark .card,
+body.dd-dark .dashboard-hero,
+body.dd-dark .stat-card,
+body.dd-dark .home-card {
+    background: #020617;
+    border-color: #111827;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+}
+
+body.dd-dark .section-title,
+body.dd-dark .stat-label,
+body.dd-dark .home-card-text,
+body.dd-dark .text-muted {
+    color: #9ca3af !important;
+    opacity: 0.9;
+}
+
+body.dd-dark .stat-value,
+body.dd-dark h1,
+body.dd-dark h2,
+body.dd-dark h4,
+body.dd-dark h5 {
+    color: #e5e7eb;
+}
+
+body.dd-dark .btn-dark {
+    background-color: #111827;
+    border-color: #111827;
+}
+
+body.dd-dark .btn-outline-dark {
+    color: #e5e7eb;
+    border-color: #374151;
+}
+
+body.dd-dark .btn-outline-dark:hover {
+    background-color: #111827;
+}
+
+body.dd-dark .btn-outline-secondary {
+    color: #e5e7eb;
+    border-color: #4b5563;
+}
+
+body.dd-dark .btn-outline-secondary:hover {
+    background-color: #111827;
+}
+
+body.dd-dark .list-group-item {
+    background-color: #020617;
+    border-color: #111827;
+    color: #e5e7eb;
+}
+
+body.dd-dark .recent-activity-list li + li {
+    border-top-color: rgba(55, 65, 81, 0.8);
+}
+
+/* Default footer (light mode) */
+.app-footer {
+    background: #f1f1f1;
+    color: #333;
+    border-top: 1px solid #ddd;
+}
+
+/* Dark mode footer */
+.dd-dark .app-footer {
+    background: #0f172a !important;
+    color:  #e2e8f0 !important;
+    border-top: 1px solid #1e293b;
+}
+
+/* =====================================
+   DARK MODE FIX — ORDER CARDS ONLY
+   ===================================== */
+
+.dd-dark .order-card-label,
+.dd-dark .order-card-label strong,
+.dd-dark .order-card-label small {
+    color: #e2e8f0 !important; /* Light grey / near-white */
+}
+
+.dd-dark .card .text-muted {
+    color: #b8c2cc !important; /* brighter muted */
+}
+
+.dd-dark .list-group-item {
+    color: #e5e7eb !important;
+    border-color: #1e293b !important;
+}
+
+.dd-dark .list-group-item small {
+    color: #94a3b8 !important; /* softer blue-grey */
+}
+
+.dd-dark .card hr {
+    border-color: #1e293b !important;
+}
+
+.dd-dark .order-card-total {
+    color: #f8fafc !important;    /* Total: */
+    font-size: 1rem;
+}
+
+.dd-dark .order-card-heading {
+    color: #f1f5f9 !important;    /* Items */
 }
