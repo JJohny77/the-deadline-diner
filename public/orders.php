@@ -11,7 +11,15 @@ if (
     isset($_SESSION['role']) &&
     $_SESSION['role'] === 'manager'
 ) {
-    // Διαγραφή όλων των order_items που ανήκουν σε orders που ΔΕΝ είναι pending
+    // 1) Σβήνουμε πρώτα τυχόν refunds που ανήκουν σε μη–pending orders
+    mysqli_query($conn, "
+        DELETE FROM refund_logs
+        WHERE order_id IN (
+            SELECT id FROM orders WHERE status <> 'pending'
+        )
+    ");
+
+    // 2) Σβήνουμε τα order_items των μη–pending orders
     mysqli_query($conn, "
         DELETE FROM order_items
         WHERE order_id IN (
@@ -19,7 +27,7 @@ if (
         )
     ");
 
-    // Διαγραφή όλων των orders που ΔΕΝ είναι pending
+    // 3) Και τέλος, σβήνουμε τα ίδια τα orders (served / refunded / cancelled κ.λπ.)
     mysqli_query($conn, "
         DELETE FROM orders
         WHERE status <> 'pending'
@@ -207,7 +215,17 @@ function renderSingleOrderCard($order, $conn) {
 
 ?>
 
-<h1 class="fw-bold mb-3">Orders Overview</h1>
+<!-- ΤΙΤΛΟΣ + ΚΟΥΜΠΙ PDF -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="fw-bold mb-0">Orders Overview</h1>
+
+    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'manager'): ?>
+        <a href="daily_report.php" class="btn btn-outline-secondary" target="_blank">
+            Export Today as PDF
+        </a>
+    <?php endif; ?>
+</div>
+
 
 <?php if ($cleanupDone): ?>
     <div class="alert alert-success">
